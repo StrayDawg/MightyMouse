@@ -450,12 +450,17 @@ def donate_to_pot():
         - Handles Selenium exceptions gracefully
     """
     if config.DONATE_TO_POT:
+        if not config.MAM_USER_EMAIL or not config.MAM_USER_PASS:
+            print("MAM_USER_EMAIL and MAM_USER_PASS must be set in config.py to donate to the pot.")
+            return
+        
         print("***** Checking Millionaire's Vault Donation Status *****")
         if userinfo["advanced"]["seedbonus"] < 2000:
             print(
                 f"You have {userinfo['advanced']['seedbonus']} seedbonus points, you need 2000 for donation (MAM Minimum for automation)"
             )
             return
+        
         try:
             # Selenium Manager automatically handles the driver
             chrome_options = Options()
@@ -477,6 +482,15 @@ def donate_to_pot():
             password_field.submit()
             # Wait for login to complete (adjust the selector as needed)
             time.sleep(5)
+
+            #Check if login was successful by looking for an element that only appears when logged in, e.g. an element with id "Donation"
+            try:
+                select_element = driver.find_element(By.NAME, "Donation")
+            except:
+                print("Login failed, please check your credentials and try again.")
+                driver.quit()
+                return
+            
             # check if millionaires json file exists, if not create it with amount_available set to 0
             if not os.path.exists(os.path.join("storage", "millionaires_vault.json")):
                 with open(
