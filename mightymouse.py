@@ -184,22 +184,34 @@ def fetch_and_save_torrents(uid: int, torrent_type: str, filename: str):
     API Response Format:
         {"rows": [{"id": "123", "title": "...", "free": "1", "vip": "1"}, ...]}
     """
-    url = f"https://myanonamouse.net/json/loadUserDetailsTorrents.php?uid={uid}&iteration=0&type={torrent_type}"
-    response = session.get(url, headers=headers)
-    if response.status_code != 200:
+    iteration = 0  # For pagination    
+    looper = True
+    tottorrents = {"rows": []}
+    while looper:    
+        url = f"https://myanonamouse.net/json/loadUserDetailsTorrents.php?uid={uid}&iteration={iteration}&type={torrent_type}"
+        response = session.get(url, headers=headers)
+        if response.status_code != 200:
+            if DEBUG:
+                print("Failed to fetch torrent details")
+            return        
+        torrents = response.json().get("rows", [])
+        tottorrents["rows"] = tottorrents["rows"] + torrents        
+        tlen = len(torrents)
         if DEBUG:
-            print("Failed to fetch torrent details")
-        return
-    torrents = response.json()
-    save_json(filename, torrents)
+            print(f"Fetched {tlen} torrents for type {torrent_type}, iteration {iteration}")
+            print(f"Total fetched so far: {len(tottorrents['rows'])} torrents")
+        if tlen < 250:  # MAM API returns 250 torrents per page, if less than 250 we are on the last page
+            looper = False
+        iteration += 1
     counter = 1
-    for torrent in torrents["rows"]:
+    for torrent in tottorrents["rows"]:
         if DEBUG:
             print(
                 f"{counter}: {torrent['id']} - {torrent['title']} - {torrent['free']} - {torrent['vip']}"
             )
-        counter += 1
-    return torrents
+            counter += 1
+    save_json(filename, tottorrents)        
+    return tottorrents
 
 
 def getUserDetails() -> dict:
@@ -606,6 +618,10 @@ def fetch_and_download_torrents(userinfo: dict):
     unSat = fetch_and_save_torrents(
         userinfo["simple"]["uid"], "unsat", "unsat_torrents.json"
     )
+    if not unSat or not isinstance(unSat, dict) or "rows" not in unSat:
+        print("ERROR: Failed to fetch unsaturated torrents or invalid response format")
+        return [], [], [], False
+    
     print(
         f"You are seeding {len(unSat['rows'])} unsaturated torrents. (Limit: {userinfo['advanced']['unsat']['limit']} for {userinfo['advanced']['classname']})"
     )
@@ -613,10 +629,13 @@ def fetch_and_download_torrents(userinfo: dict):
     for torrent in unSat["rows"]:
         unSatTorrents.append(torrent["id"])
     unSatCount = len(unSat["rows"])
-    # Fetch and save saturated torrents
+    # Fetch and save saturated torrents   
     sSat = fetch_and_save_torrents(
         userinfo["simple"]["uid"], "sSat", "sat_torrents.json"
     )
+    if not sSat or not isinstance(sSat, dict) or "rows" not in sSat:
+        print("ERROR: Failed to fetch saturated torrents or invalid response format")
+        return [], [], [], False
     
     print(f"You are seeding {userinfo['advanced']['sSat']['count']} saturated torrents")
     sSatTorrents = []
@@ -626,6 +645,10 @@ def fetch_and_download_torrents(userinfo: dict):
     leeching = fetch_and_save_torrents(
         userinfo["simple"]["uid"], "leeching", "leeching_torrents.json"
     )
+    if not leeching or not isinstance(leeching, dict) or "rows" not in leeching:
+        print("ERROR: Failed to fetch leeching torrents or invalid response format")
+        return [], [], [], False
+    
     print(f"You are leeching {len(leeching['rows'])} torrents")
     leechingTorrents = []
     for torrent in leeching["rows"]:
@@ -860,17 +883,20 @@ def warn_on_unsat_stg_threshold(
                 )
         torrent["STG_seconds"] = stg_time_seconds
 
-    # ordser unsat torrents by stg time ascending and print the 5 closest to saturation
+    # sort unsat torrents by stg time ascending and print the closest to saturation
     unsat_torrents_sorted = sorted(
         unsat_torrents.get("rows", []), key=lambda x: x.get("STG_seconds", float("inf"))
     )
-    for torrent in unsat_torrents_sorted[:1]:
+    closest_stg = None
+    if unsat_torrents_sorted:
+        closest_torrent = unsat_torrents_sorted[0]
+        closest_stg = closest_torrent.get("STG_seconds", None)
         if DEBUG:
             print(
-                f"INFO: Torrent ID {torrent['id']} is the closest to saturation with STG time of {torrent['STG']}."
+                f"INFO: Torrent ID {closest_torrent['id']} is the closest to saturation with STG time of {closest_torrent['STG']}."
             )
 
-    return torrent.get("STG_seconds", None)
+    return closest_stg
 
 
 def main():
@@ -944,10 +970,8 @@ def main():
             manage_qbittorrent_categories(unSatTorrents, sSatTorrents, leechingTorrents)
     except Exception as e:
         print(f"Error in main workflow: {e}")
-        if DEBUG:
-            import traceback
-
-            traceback.print_exc()
+        import traceback
+        traceback.print_exc()
     return nextrun
     # Bye!
 
