@@ -617,7 +617,8 @@ def fetch_and_download_torrents(userinfo: dict):
     sSat = fetch_and_save_torrents(
         userinfo["simple"]["uid"], "sSat", "sat_torrents.json"
     )
-    print(f"You are seeding {len(sSat['rows'])} saturated torrents")
+    
+    print(f"You are seeding {userinfo['advanced']['sSat']['count']} saturated torrents")
     sSatTorrents = []
     for torrent in sSat["rows"]:
         sSatTorrents.append(torrent["id"])
