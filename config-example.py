@@ -13,7 +13,9 @@ QBITTORRENT_USERNAME = "admin" # qBittorrent username
 QBITTORRENT_PASSWORD = "admin" # qBittorrent password
 
 #Spend Bonus Points?
+# DONATE_TO_POT can lock your account if you don't have yuour password correct, so make sure to set MAM_USER_PASS before setting DONATE_TO_POT to True
 DONATE_TO_POT = False # Automatically donate to the pot once a cycle to get FL wedges (requires Selenium and ChromeDriver, leave False to disable)
+
 BUY_UPLOAD = False # Automatically buy upload (requires Selenium and ChromeDriver, leave False to disable)
 BUY_VIP = False # Automatically try to keep VIP full (requires Selenium and ChromeDriver, leave False to disable)
 
