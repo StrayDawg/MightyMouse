@@ -2,7 +2,7 @@
 
 ## Overview
 
-**MightyMouse** is a Python-based automation bot for MyAnonamouse (MAM) that handles torrent management, bonus point optimization, and seedbox category organization.
+**MightyMouse** is a Python-based automation bot for MyAnonamouse (MAM) that handles torrent management, bonus point optimization, and qBittorent category organization.
 
 ## Key Features
 
@@ -42,8 +42,8 @@
 ## Requirements
 
 - Python 3.8+
-- MAM account with valid session ID
-- qBittorrent (optional, for category management)
+- MAM account with valid session ID 
+- qBittorrent 
 - Dependencies: `requests`, `selenium`, `qbittorrent-api`, `schedule`, `tqdm`
 
 ## Configuration
@@ -54,5 +54,4 @@ See `config.py` for all available settings including:
 - `SEARCH`: Torrent search parameters
 - `BUY_VIP`, `BUY_UPLOAD`, `DONATE_TO_POT`: Enable/disable automation features
 - `QBITTORRENT_*`: Connection details for qBittorrent WebUI
-
 
