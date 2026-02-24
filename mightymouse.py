@@ -103,6 +103,24 @@ freshLoad = True  # Flag for tracking first load
 base_url = "https://www.myanonamouse.net"  # MAM base URL
 data = {}  # General data storage
 
+#save cookies to a file for debugging purposes
+def save_cookies(filename: str):
+    """Save current session cookies to a JSON file in the storage directory.
+
+    Useful for debugging authentication issues with MAM API. Saves cookies in a
+    human-readable format with UTF-8 encoding.
+
+    Args:
+        filename (str): Target filename in the storage directory (e.g., "cookies.json")
+
+    Returns:
+        None
+    """
+    filepath = os.path.join("storage", filename)
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(session.cookies.get_dict(), f, indent=2, ensure_ascii=False)
+    if DEBUG:
+        print(f"Cookies saved to {filepath}")            
 
 def save_json(filename: str, data: dict):
     """Save data to JSON file in storage directory.
@@ -433,6 +451,8 @@ def check_and_buy_upload(userinfo: dict):
 
 
 def donate_to_pot():
+    ### NOT WORKING CURRENTLY
+    return
     """Automatically donate seed bonus to Millionaire's Vault if configured.
 
     Uses Selenium WebDriver to interact with MAM's Millionaire's Vault donation page.
@@ -477,29 +497,46 @@ def donate_to_pot():
             # Selenium Manager automatically handles the driver
             chrome_options = Options()
             if not config.DEBUG:
-                chrome_options.add_argument("--headless")
+                #chrome_options.add_argument("--headless")
+                pass
             driver = webdriver.Chrome(options=chrome_options)
             driver.get("https://www.myanonamouse.net/millionaires/donate.php?")
-            username_field = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.NAME, "email"))
-            )
-            password_field = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.NAME, "password"))
-            )
-            # Enter credentials
-            username_field.send_keys(config.MAM_USER_EMAIL)
-            password_field.send_keys(config.MAM_USER_PASS)
             
-            # Submit the form
-            password_field.submit()
-            # Wait for login to complete (adjust the selector as needed)
-            time.sleep(5)
-
-            #Check if login was successful by looking for an element that only appears when logged in, e.g. an element with id "Donation"
+            # Add MAM_ID cookie to selenium session to avoid re-login
+            driver.add_cookie({"name": "mam_id", "value": MAM_ID, "domain": ".myanonamouse.net"})
+            
+            # Refresh page to apply cookie
+            driver.refresh()
+            time.sleep(2)
+            
+            # Check if already logged in by looking for an element that only appears when logged in
             try:
                 select_element = driver.find_element(By.NAME, "Donation")
+                if DEBUG:
+                    print("Successfully logged in using saved cookie")
             except:
-                print("Login failed, please check your credentials and try again.")
+                # If cookie didn't work, fall back to email/password login
+                print("Cookie login failed, attempting email/password login...")
+                username_field = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.NAME, "email"))
+                )
+                password_field = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.NAME, "password"))
+                )
+                # Enter credentials
+                username_field.send_keys(config.MAM_USER_EMAIL)
+                password_field.send_keys(config.MAM_USER_PASS)
+                
+                # Submit the form
+                password_field.submit()
+                # Wait for login to complete (adjust the selector as needed)
+                time.sleep(5)
+
+                #Check if login was successful by looking for an element that only appears when logged in, e.g. an element with id "Donation"
+                try:
+                    select_element = driver.find_element(By.NAME, "Donation")
+                except:
+                    print("Login failed, please check your credentials and try again.")
                 driver.quit()
                 return
             
@@ -941,7 +978,7 @@ def main():
     try:
         # Fetch and save user data
         userinfo = getUserDetails()
-        
+        save_cookies("cookies.json")
         # Validate userinfo was fetched successfully
         if not userinfo or "simple" not in userinfo or "advanced" not in userinfo:
             print("ERROR: Failed to fetch user details from MAM. Check MAM_ID in config.py and your internet connection.")
