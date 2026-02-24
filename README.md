@@ -1,3 +1,5 @@
+![picture 0](images/c2578cdc2ca5c1ccd8d12ace71e881cd47e47ab97f05ae45bbc0dff0434e6ea7.jpg)  
+
 ## Overview
 
 **MightyMouse** is a Python-based automation bot for MyAnonamouse (MAM) that handles torrent management, bonus point optimization, and seedbox category organization.
