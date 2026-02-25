@@ -844,54 +844,42 @@ def warn_on_unsat_stg_threshold(
         unsat_torrents = json.load(f)
 
     for torrent in unsat_torrents.get("rows", []):
-        if "STG" not in torrent:
-            continue
-        stg_time = torrent["STG"]
-        # stg_time is human readable like "1 day 12:30:00", convert to seconds
-        stg_time_seconds = 0
-        if "d " in stg_time:
-            days = stg_time.split("d ")[0].replace("d", "").strip()
-            days = int(days)
-            stg_time_seconds += days * 24 * 3600
-            stg_time = stg_time.split("d ")[1].strip()
-
-        if config.DEBUG:
-            print(
-                f"DEBUG: Torrent ID {torrent['id']} has STG time of {stg_time} after parsing days. Total seconds so far: {stg_time_seconds}"
-            )
-
-        # Convert remaining time to seconds
-        time_parts = stg_time.split(":")
-        if len(time_parts) == 3:
-            hours, minutes, seconds = map(int, time_parts)
-            stg_time_seconds += hours * 3600 + minutes * 60 + seconds
-        if config.DEBUG:
-            print(
-                f"DEBUG: Torrent ID {torrent['id']} has STG time of {stg_time} after parsing days. Total seconds so far: {stg_time_seconds}"
-            )
-
-        if stg_time_seconds < threshold_seconds:
-            if DEBUG:
-                print(
-                    f"Warning: Torrent ID {torrent['id']} is close to saturation with STG time of {stg_time}."
-                )
-        torrent["STG_seconds"] = stg_time_seconds
-
-    # sort unsat torrents by stg time ascending and print the closest to saturation
-    unsat_torrents_sorted = sorted(
+        if "STG" in torrent:
+            # Covert "2d 04:12:00" to seconds
+            stg_str = torrent["STG"]
+            stg_seconds = 0
+            if "d" in stg_str:
+                days, stg_str = stg_str.split("d ")
+                stg_seconds += int(days.strip()) * 24 * 3600
+            if ":" in stg_str:
+                # count occurrences of ":" to determine if it's in HH:MM:SS or MM:SS format
+                colon_count = stg_str.count(":")
+                if colon_count == 2:
+                    hours, minutes, seconds = stg_str.split(":")
+                    stg_seconds += int(hours.strip()) * 3600
+                    stg_seconds += int(minutes.strip()) * 60
+                    stg_seconds += int(seconds.strip())
+                elif colon_count == 1:
+                    minutes, seconds = stg_str.split(":")
+                    stg_seconds += int(minutes.strip()) * 60
+                    stg_seconds += int(seconds.strip())
+            if stg_seconds < 3600:
+                if config.DEBUG:
+                    print(
+                        f"INFO: Torrent '{torrent['title']}' (ID: {torrent['id']}) is close to saturation with STG of {torrent['STG']} ({stg_seconds} seconds remaining)"
+                    )
+            
+            torrent["STG_seconds"] = stg_seconds
+    # sort unsat torrents by STG_seconds ascending
+    unsat_torrents["rows"] = sorted(
         unsat_torrents.get("rows", []), key=lambda x: x.get("STG_seconds", float("inf"))
-    )
-    closest_stg = None
-    if unsat_torrents_sorted:
-        closest_torrent = unsat_torrents_sorted[0]
-        closest_stg = closest_torrent.get("STG_seconds", None)
-        if DEBUG:
-            print(
-                f"INFO: Torrent ID {closest_torrent['id']} is the closest to saturation with STG time of {closest_torrent['STG']}."
-            )
-
-    return closest_stg
-
+    )   
+    if config.DEBUG:
+        print("Unsaturated torrents sorted by STG (closest to saturation first):")
+        for torrent in unsat_torrents.get("rows", [])[:1]:  # print top 1 closest to saturation
+            print(f"{torrent['title']} - STG: {torrent['STG']} - STG_seconds: {torrent.get('STG_seconds', 'N/A')}")    
+    
+    return torrent["STG_seconds"] if unsat_torrents.get("rows", []) else 0
 
 def main():
     """Main orchestration function for the entire mightymouse automation workflow.
@@ -956,8 +944,7 @@ def main():
         nextrun = warn_on_unsat_stg_threshold(
             os.path.join("storage", "unsat_torrents.json")
         )
-        if DEBUG:
-            print(f"Next saturation complete in {nextrun} seconds")
+        print(f"Next saturation complete in {nextrun} seconds")
 
         # Manage qBittorrent categories again if downloads were triggered
         if didDownload:
