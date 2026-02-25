@@ -944,7 +944,7 @@ def main():
         nextrun = warn_on_unsat_stg_threshold(
             os.path.join("storage", "unsat_torrents.json")
         )
-        print(f"Next saturation complete in {nextrun} seconds")
+        print(f"Next saturation complete in {nextrun} seconds. Adding 5 minutes buffer to next run time to allow MAM to update torrent status before next check.")
 
         # Manage qBittorrent categories again if downloads were triggered
         if didDownload:
