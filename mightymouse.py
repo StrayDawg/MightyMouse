@@ -368,12 +368,12 @@ def check_and_buy_vip(userinfo: dict):
         if config.BUY_VIP:
             if (
                 userinfo["advanced"]["seedbonus"] < purchasable_cost
-                or purchasable_weeks <= 0.15
+                or purchasable_weeks <= 1
             ):
                 if (
-                    purchasable_weeks <= 0.15
-                ):  # Min purchase is a day's worth of VIP, which is 0.15 weeks
-                    print("Minimum VIP purchase is 1 day, skipping...")
+                    purchasable_weeks <= 1  # Min purchase is a week's worth of VIP, which is 1 week
+                ):
+                    print("Minimum VIP purchase is 1 week, skipping...")
                 else:
                     print(
                         f"You have {userinfo['advanced']['seedbonus']} seedbonus points, you need {purchasable_cost} for {round(purchasable_weeks, 3)} weeks of VIP (MAM Minimum for automation)"
