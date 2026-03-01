@@ -237,6 +237,7 @@ def getUserDetails() -> dict:
     """
     headers["cookie"] = f"mam_id={MAM_ID}"
     response = session.get(f"{base_url}/jsonLoad.php", headers=headers)
+
     if response.status_code != 200:
         return {}
     userinfo["simple"] = response.json()
@@ -877,8 +878,7 @@ def warn_on_unsat_stg_threshold(
     if config.DEBUG:
         print("Unsaturated torrents sorted by STG (closest to saturation first):")
         for torrent in unsat_torrents.get("rows", [])[:1]:  # print top 1 closest to saturation
-            print(f"{torrent['title']} - STG: {torrent['STG']} - STG_seconds: {torrent.get('STG_seconds', 'N/A')}")    
-    
+            print(f"{torrent['title']} - STG: {torrent['STG']} - STG_seconds: {torrent.get('STG_seconds', 'N/A')}")
     return torrent["STG_seconds"] if unsat_torrents.get("rows", []) else 0
 
 def main():

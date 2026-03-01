@@ -7,22 +7,26 @@
 ## Key Features
 
 ### Torrent Management
+
 - **Unsaturated Torrent Tracking**: Monitors torrents approaching saturation limit and provides warnings with estimated time to completion
 - **Automatic Downloads**: Searches for and downloads free/VIP torrents to fill your unsaturated torrent quota
 - **Smart Pagination**: Handles large search results across multiple pages to find optimal torrents
 
 ### Bonus Point Automation
+
 - **VIP Auto-Purchase**: Automatically buys VIP time when you have sufficient seed bonus points (configurable)
 - **Upload Credit Management**: Purchases upload credits as configured
 - **Millionaire's Vault Donations**: Auto-donates seed bonus to the vault once per cycle (when eligible)
 
 ### qBittorrent Integration
+
 - **Category Management**: Automatically organizes torrents into categories based on saturation status:
   - `MAM_UNSAT`: Unsaturated torrents (actively seeding to saturation)
   - `MAM_SAT`: Saturated torrents (maintenance seeding)
 - **Real-time Sync**: Maintains category consistency between MAM data and qBittorrent
 
 ### Scheduler
+
 - **Configurable Intervals**: Runs automation at intervals specified in `config.py` (default: 1 hour)
 - **Dynamic Scheduling**: Can use STG (Seed To Gain) times to schedule next run based on torrent saturation progress
 - **Progress Tracking**: Visual countdown with ETA using `tqdm` progress bar
@@ -49,6 +53,7 @@
 ## Configuration
 
 See `config.py` for all available settings including:
+
 - `MAM_ID`: Your MAM session ID
 - `RUN_INTERVAL`: Time between automation runs
 - `SEARCH`: Torrent search parameters
@@ -84,5 +89,3 @@ Next saturation complete in 158 seconds
 ***** Fixing categories in qBittorrent *****
 Next run scheduled in 458 seconds
 ```
-
-
