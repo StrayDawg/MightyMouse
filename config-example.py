@@ -1,7 +1,12 @@
 
 # MAM Information 
 # Session ID - create one here: https://www.myanonamouse.net/preferences/index.php?view=security
+# I actually have 2 MAM_IDs here because I run with a VPN and without and I switch between them depending on whether I'm connected to the VPN or not. 
+# You only need one MAM_ID, but you can have multiple if you want to switch between accounts or use with/without a VPN like I do.
 MAM_ID = "" # MyAnonaMouse session ID
+#MAM_ID = "" # MyAnonaMouse session ID with VPN (if applicable)
+
+# MAM login information
 MAM_USER_EMAIL = "" # MyAnonaMouse email address or username
 MAM_USER_PASS = "" # MyAnonaMouse password 
 RUN_INTERVAL = 60 * 60 # Time in seconds the script should wait between runs (default is 1 hour)   
@@ -12,7 +17,7 @@ QBITTORRENT_PORT = "8080" # qBittorrent port (leave as 8080 if running on the sa
 QBITTORRENT_USERNAME = "admin" # qBittorrent username
 QBITTORRENT_PASSWORD = "admin" # qBittorrent password
 
-#Spend Bonus Points?
+# Spend Bonus Points?
 # DONATE_TO_POT can lock your account if you don't have yuour password correct, so make sure to set MAM_USER_PASS before setting DONATE_TO_POT to True
 DONATE_TO_POT = False # Automatically donate to the pot once a cycle or day to get FL wedges (requires Selenium and ChromeDriver, leave False to disable) (BROKEN CURRENTLY, DO NOT ENABLE)
 POT_INTERVAL = "CYCLE" # Donate to pot once per cycle.
@@ -35,10 +40,11 @@ AUTO_DEL_BATCH = True
 # Debug flag - set to True to enable verbose print statements
 DEBUG = False
 
+#Torrent categories in qBittorrent
 CAT_UNSAT = "MAM_UNSAT" # qBittorrent category for unsaturated torrents
 CAT_SAT = "MAM_SAT" # qBittorrent category for saturated torrents
 
-# Torrent search criteria
+# MAM Torrent search criteria (shouldn't have to chage these, but you can if you want to customize the search)
 # More information: https://www.myanonamouse.net/api/endpoint.php/1/tor/js/loadSearchJSONbasic.php
 SKIP = ['sSat', 'unsat', 'leeching'] # sSat, unsat, inactHnr, inactUnsat, upInact, inactSat, seedUnsat, seedHnr, leeching, upAct
 SEARCH = { 

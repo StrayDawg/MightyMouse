@@ -69,7 +69,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 
 import time
-import schedule
 import config
 
 # ============================================================================
@@ -102,6 +101,7 @@ userinfo = {}  # Cached user information from MAM
 freshLoad = True  # Flag for tracking first load
 base_url = "https://www.myanonamouse.net"  # MAM base URL
 data = {}  # General data storage
+
 
 def save_json(filename: str, data: dict):
     """Save data to JSON file in storage directory.
@@ -183,23 +183,27 @@ def fetch_and_save_torrents(uid: int, torrent_type: str, filename: str):
     API Response Format:
         {"rows": [{"id": "123", "title": "...", "free": "1", "vip": "1"}, ...]}
     """
-    iteration = 0  # For pagination    
+    iteration = 0  # For pagination
     looper = True
     tottorrents = {"rows": []}
-    while looper:    
+    while looper:
         url = f"https://myanonamouse.net/json/loadUserDetailsTorrents.php?uid={uid}&iteration={iteration}&type={torrent_type}"
         response = session.get(url, headers=headers)
         if response.status_code != 200:
             if DEBUG:
                 print("Failed to fetch torrent details")
-            return        
+            return
         torrents = response.json().get("rows", [])
-        tottorrents["rows"] = tottorrents["rows"] + torrents        
+        tottorrents["rows"] = tottorrents["rows"] + torrents
         tlen = len(torrents)
         if DEBUG:
-            print(f"Fetched {tlen} torrents for type {torrent_type}, iteration {iteration}")
+            print(
+                f"Fetched {tlen} torrents for type {torrent_type}, iteration {iteration}"
+            )
             print(f"Total fetched so far: {len(tottorrents['rows'])} torrents")
-        if tlen < 250:  # MAM API returns 250 torrents per page, if less than 250 we are on the last page
+        if (
+            tlen < 250
+        ):  # MAM API returns 250 torrents per page, if less than 250 we are on the last page
             looper = False
         iteration += 1
     counter = 1
@@ -209,7 +213,7 @@ def fetch_and_save_torrents(uid: int, torrent_type: str, filename: str):
                 f"{counter}: {torrent['id']} - {torrent['title']} - {torrent['free']} - {torrent['vip']}"
             )
             counter += 1
-    save_json(filename, tottorrents)        
+    save_json(filename, tottorrents)
     return tottorrents
 
 
@@ -236,11 +240,12 @@ def getUserDetails() -> dict:
         - Sets authentication cookie in global headers dict
     """
     headers["cookie"] = f"mam_id={MAM_ID}"
+    # Get basic user info
     response = session.get(f"{base_url}/jsonLoad.php", headers=headers)
-
     if response.status_code != 200:
         return {}
     userinfo["simple"] = response.json()
+    # Get advanced user stats
     response = session.get(f"{base_url}/jsonLoad.php?snatch_summary", headers=headers)
     if response.status_code != 200:
         return {}
@@ -248,6 +253,7 @@ def getUserDetails() -> dict:
     # Convert timestamps and save
     user_formatted = convert_timestamps(userinfo)
     if DEBUG:
+        print("Fetched user details:")
         print(json.dumps(user_formatted, indent=2))
     save_json("userinfo.json", user_formatted)
     print(
@@ -373,7 +379,8 @@ def check_and_buy_vip(userinfo: dict):
                 or purchasable_weeks <= 1
             ):
                 if (
-                    purchasable_weeks <= 1  # Min purchase is a week's worth of VIP, which is 1 week
+                    purchasable_weeks
+                    <= 1  # Min purchase is a week's worth of VIP, which is 1 week
                 ):
                     print("Minimum VIP purchase is 1 week, skipping...")
                 else:
@@ -463,24 +470,26 @@ def donate_to_pot():
     """
     if config.DONATE_TO_POT:
         if not config.MAM_USER_EMAIL or not config.MAM_USER_PASS:
-            print("MAM_USER_EMAIL and MAM_USER_PASS must be set in config.py to donate to the pot.")
+            print(
+                "MAM_USER_EMAIL and MAM_USER_PASS must be set in config.py to donate to the pot."
+            )
             return
-        
+
         print("***** Checking Millionaire's Vault Donation Status *****")
         if userinfo["advanced"]["seedbonus"] < 2000:
             print(
                 f"You have {userinfo['advanced']['seedbonus']} seedbonus points, you need 2000 for donation (MAM Minimum for automation)"
             )
             return
-        
+
         try:
             # Selenium Manager automatically handles the driver
             chrome_options = Options()
             if not config.DEBUG:
-                chrome_options.add_argument("--headless")                
+                chrome_options.add_argument("--headless")
             driver = webdriver.Chrome(options=chrome_options)
             driver.get("https://www.myanonamouse.net/millionaires/donate.php?")
-            
+
             username_field = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.NAME, "email"))
             )
@@ -490,11 +499,11 @@ def donate_to_pot():
             # Enter credentials
             username_field.send_keys(config.MAM_USER_EMAIL)
             password_field.send_keys(config.MAM_USER_PASS)
-            
+
             # Submit the form
             password_field.submit()
             # Wait for login to complete (adjust the selector as needed)
-            time.sleep(5)
+            time.sleep(10)
 
             # check if millionaires json file exists, if not create it with amount_available set to 0
             if not os.path.exists(os.path.join("storage", "millionaires_vault.json")):
@@ -511,7 +520,7 @@ def donate_to_pot():
                 encoding="utf-8",
             ) as f:
                 previous_donation_total = json.load(f).get("amount_available", 1)
-            
+
             # find "<A href=> element with id "millionInfo" and add the title and text to variables
             million_info_element = driver.find_element(By.ID, "millionInfo")
             million_info_title = million_info_element.get_attribute("title")
@@ -519,7 +528,7 @@ def donate_to_pot():
             donation_total = int(
                 million_info_text.split(":")[1].strip().split(" ")[0].replace(",", "")
             )
-            
+
             with open(
                 os.path.join("storage", "millionaires_vault.json"),
                 "w",
@@ -531,7 +540,7 @@ def donate_to_pot():
                     indent=2,
                     ensure_ascii=False,
                 )
-            
+
             if config.POT_INTERVAL == "CYCLE":
                 if (
                     previous_donation_total > 0
@@ -539,12 +548,12 @@ def donate_to_pot():
                 ):
                     if config.DEBUG:
                         print(
-                        f"Donation total is {donation_total}, change: {donation_total - previous_donation_total}"
+                            f"Donation total is {donation_total}, change: {donation_total - previous_donation_total}"
                         )
                     print("Not a new cycle: skipping donation attempt")
                     driver.quit()
                     return
-            
+
             # Check if already donated today by looking for "have already" in million_info_title
             if "have already" in million_info_title:
                 print("Already donated today, skipping donation attempt")
@@ -568,8 +577,8 @@ def donate_to_pot():
                         )
                 except Exception as e:
                     print(f"Error during donation process: {e}")
-                    
-            driver.quit()            
+
+            driver.quit()
         except Exception as e:
             print(f"Selenium error: {e}")
 
@@ -617,7 +626,7 @@ def fetch_and_download_torrents(userinfo: dict):
     if not unSat or not isinstance(unSat, dict) or "rows" not in unSat:
         print("ERROR: Failed to fetch unsaturated torrents or invalid response format")
         return [], [], [], False
-    
+
     print(
         f"You are seeding {len(unSat['rows'])} unsaturated torrents. (Limit: {userinfo['advanced']['unsat']['limit']} for {userinfo['advanced']['classname']})"
     )
@@ -625,14 +634,14 @@ def fetch_and_download_torrents(userinfo: dict):
     for torrent in unSat["rows"]:
         unSatTorrents.append(torrent["id"])
     unSatCount = len(unSat["rows"])
-    # Fetch and save saturated torrents   
+    # Fetch and save saturated torrents
     sSat = fetch_and_save_torrents(
         userinfo["simple"]["uid"], "sSat", "sat_torrents.json"
     )
     if not sSat or not isinstance(sSat, dict) or "rows" not in sSat:
         print("ERROR: Failed to fetch saturated torrents or invalid response format")
         return [], [], [], False
-    
+
     print(f"You are seeding {userinfo['advanced']['sSat']['count']} saturated torrents")
     sSatTorrents = []
     for torrent in sSat["rows"]:
@@ -644,7 +653,7 @@ def fetch_and_download_torrents(userinfo: dict):
     if not leeching or not isinstance(leeching, dict) or "rows" not in leeching:
         print("ERROR: Failed to fetch leeching torrents or invalid response format")
         return [], [], [], False
-    
+
     print(f"You are leeching {len(leeching['rows'])} torrents")
     leechingTorrents = []
     for torrent in leeching["rows"]:
@@ -870,16 +879,22 @@ def warn_on_unsat_stg_threshold(
                     print(
                         f"INFO: Torrent '{torrent['title']}' (ID: {torrent['id']}) is close to saturation with STG of {torrent['STG']} ({stg_seconds} seconds remaining)"
                     )
-            
+
             torrent["STG_seconds"] = stg_seconds
     # sort unsat torrents by STG_seconds ascending
     unsat_torrents["rows"] = sorted(
         unsat_torrents.get("rows", []), key=lambda x: x.get("STG_seconds", float("inf"))
-    )   
-    
-    for torrent in unsat_torrents.get("rows", [])[:1]:  # print torrent closest to saturation
-        print("Torrent closest to finishing saturation: " + f"{torrent['title']} - STG: {torrent['STG']} - STG_seconds: {torrent.get('STG_seconds', 'N/A')}")
+    )
+
+    for torrent in unsat_torrents.get("rows", [])[
+        :1
+    ]:  # print torrent closest to saturation
+        print(
+            "Torrent closest to finishing saturation: "
+            + f"{torrent['title']} - STG: {torrent['STG']} - STG_seconds: {torrent.get('STG_seconds', 'N/A')}"
+        )
     return torrent["STG_seconds"] if unsat_torrents.get("rows", []) else 0
+
 
 def main():
     """Main orchestration function for the entire mightymouse automation workflow.
@@ -923,12 +938,14 @@ def main():
     try:
         # Fetch and save user data
         userinfo = getUserDetails()
-        
+
         # Validate userinfo was fetched successfully
         if not userinfo or "simple" not in userinfo or "advanced" not in userinfo:
-            print("ERROR: Failed to fetch user details from MAM. Check MAM_ID in config.py and your internet connection.")
+            print(
+                "ERROR: Failed to fetch user details from MAM. Check MAM_ID in config.py and your internet connection."
+            )
             sys.exit(1)
-        
+
         # Fetch and download torrents
         unSatTorrents, sSatTorrents, leechingTorrents, didDownload = (
             fetch_and_download_torrents(userinfo)
@@ -946,7 +963,9 @@ def main():
         )
         print(f"Next saturation completes in {nextrun} seconds.")
         if nextrun < config.RUN_INTERVAL:
-            print("Adding extra 5 minute buffer to next run time to allow MAM to update torrent status before next check.")
+            print(
+                "Adding extra 5 minute buffer to next run time to allow MAM to update torrent status before next check."
+            )
 
         # Manage qBittorrent categories again if downloads were triggered
         if didDownload:
@@ -954,6 +973,7 @@ def main():
     except Exception as e:
         print(f"Error in main workflow: {e}")
         import traceback
+
         traceback.print_exc()
     return nextrun
     # Bye!
@@ -967,7 +987,7 @@ def run_scheduler():
     """
 
     default_interval = config.RUN_INTERVAL if hasattr(config, "RUN_INTERVAL") else 3600
-    
+
     while True:
         nextrun = main()
         if nextrun is None:
@@ -993,6 +1013,7 @@ def run_scheduler():
             time.sleep(1)
             remaining -= 1
         print()
+        freshLoad = False  # placeholder for any state reset needed before next run
 
 
 # ============================================================================
