@@ -1,3 +1,5 @@
+# MightyMouse
+
 ![picture 0](images/c2578cdc2ca5c1ccd8d12ace71e881cd47e47ab97f05ae45bbc0dff0434e6ea7.jpg)  
 
 ## Overview
@@ -46,8 +48,8 @@
 ## Requirements
 
 - Python 3.8+
-- MAM account with valid session ID 
-- qBittorrent 
+- MAM account with valid session ID
+- qBittorrent
 - Dependencies: `requests`, `selenium`, `qbittorrent-api`, `schedule`, `tqdm`
 
 ## Configuration
@@ -62,7 +64,7 @@ See `config.py` for all available settings including:
 
 - Sample Output
 
-```
+```text
 PS O:\> python .\mightymouse.py
 User: ************ - Class: VIP - Bonus Points: 766
 ***** Checking Torrent Status *****
