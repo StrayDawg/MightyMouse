@@ -11,6 +11,7 @@ MAM_USER_EMAIL = "" # MyAnonaMouse email address or username
 MAM_USER_PASS = "" # MyAnonaMouse password 
 RUN_INTERVAL = 60 * 60 # Time in seconds the script should wait between runs (default is 1 hour)   
 MAM_OPEN_SLOTS = 5 # Number of download slots to keep open (set to 0 to disable)
+MAM_DOWNLOAD_ENABLED = False # Set to False to disable downloading torrents (still checks for new torrents and sends notifications if enabled)
 
 # QBittorrent Information
 QBITTORRENT_URL = r"http://localhost" # qBittorrent URL (leave as http://localhost if running on the same machine)

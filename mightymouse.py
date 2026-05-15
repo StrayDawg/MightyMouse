@@ -282,6 +282,11 @@ def downloadBatch(ids: list):
         - Waits 5 seconds between batch downloads for rate limiting
         - Saves each batch with unique timestamp in filename
     """
+    
+    if not config.MAM_DOWNLOAD_ENABLED:
+        print("MAM_DOWNLOAD_ENABLED is set to False, skipping download.")
+        return
+
     # Download in batches - MAM API limit is 100 torrents per request
     for i in range(0, len(ids), 100):
         batch = ids[i : i + 100]
@@ -295,6 +300,7 @@ def downloadBatch(ids: list):
             timeout=30,
         )
 
+    
         # Save ZIP file with timestamp to storage directory
         path = os.path.join(data_dir, f"batch_{time.time()}.zip")
         with open(path, "wb") as f:
