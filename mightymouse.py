@@ -807,7 +807,7 @@ def manage_qbittorrent_categories(
         except Exception as e:
             print(f"Error creating categories in qBittorrent: {e}")
 
-        # Get list of seeding torrents in qBittorrent with category "MAM"
+        # Get list of seeding torrents in qBittorrent with category "MAM_SAT" or "MAM_UNSAT"
         torrents = qb.torrents_info(category=config.CAT_UNSAT)
         torrents += qb.torrents_info(category=config.CAT_SAT)
 
