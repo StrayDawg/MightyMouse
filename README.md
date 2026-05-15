@@ -50,17 +50,61 @@
 - Python 3.8+
 - MAM account with valid session ID
 - qBittorrent
-- Dependencies: `requests`, `selenium`, `qbittorrent-api`, `schedule`, `tqdm`
+- Dependencies: `requests`, `selenium`, `qbittorrent-api`, `schedule`
+
+## Setup And Run
+
+1. Clone the repository and open it in your terminal.
+2. Install Python dependencies:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+If you are on PowerShell and use a full Python path with spaces, use this form:
+
+```powershell
+& "C:/Program Files/Python314/python.exe" -m pip install -r requirements.txt
+```
+
+3. Create your local config:
+  - If `config.py` is missing, the program will auto-create it from `config-example.py` on first run.
+4. Edit `config.py` and set at minimum:
+  - `MAM_ID`
+  - `MAM_USER_EMAIL`
+  - `MAM_USER_PASS`
+  - `QBITTORRENT_URL`, `QBITTORRENT_PORT`, `QBITTORRENT_USERNAME`, `QBITTORRENT_PASSWORD`
+5. Make sure qBittorrent WebUI is enabled and reachable at the URL/port in `config.py`.
+6. Run the bot:
+
+```powershell
+python .\mightymouse.py
+```
+
+Or with a full interpreter path:
+
+```powershell
+& "C:/Program Files/Python314/python.exe" .\mightymouse.py
+```
+
+The script starts immediately, performs a full pass, then enters its scheduler loop.
 
 ## Configuration
 
 See `config.py` for all available settings including:
 
 - `MAM_ID`: Your MAM session ID
+- `MAM_USER_EMAIL`, `MAM_USER_PASS`: Credentials used for donation automation
 - `RUN_INTERVAL`: Time between automation runs
-- `SEARCH`: Torrent search parameters
+- `MAM_OPEN_SLOTS`: Number of free unsaturated slots to keep open
+- `MAM_DOWNLOAD_ENABLED`: Enable/disable torrent downloads while still running checks
+- `SEARCH`: Torrent search parameters posted to MAM search API
 - `BUY_VIP`, `BUY_UPLOAD`, `DONATE_TO_POT`: Enable/disable automation features
-- `QBITTORRENT_*`: Connection details for qBittorrent WebUI
+- `POT_INTERVAL`: Donation cadence (for example, `CYCLE`)
+- `QBITTORRENT_URL`, `QBITTORRENT_PORT`, `QBITTORRENT_USERNAME`, `QBITTORRENT_PASSWORD`: qBittorrent WebUI connection details
+- `CAT_UNSAT`, `CAT_SAT`: qBittorrent category names used for organization
+- `AUTO_EXTRACT_DIR`, `AUTO_DEL_BATCH`: Control torrent ZIP extraction and cleanup
+- `DEBUG`: Enable verbose logging
 
 - Sample Output
 

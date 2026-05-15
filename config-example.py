@@ -28,10 +28,6 @@ POT_INTERVAL = "CYCLE" # Donate to pot once per cycle.
 BUY_UPLOAD = False # Automatically buy upload (requires Selenium and ChromeDriver, leave False to disable)
 BUY_VIP = False # Automatically try to keep VIP full (requires Selenium and ChromeDriver, leave False to disable)
 
-# Webhook (Not used yet)
-DISCORD_WEBHOOK = "" # Discord webhook link for notifications (leave blank to disable)
-STATS_NOTIFICATION_INTERVAL = 60 * 15 # Time in seconds the script should wait until sending another statistics update (False to disable)
-
 # QBT Automation Options
 # AUTO_EXTRACT_DIR = "" # Automatically extract the downloaded torrents to specified directory (leave blank to disable)
 # Add this as a watched folder in qBittorrent to automatically add torrents to qBittorrent once extracted
